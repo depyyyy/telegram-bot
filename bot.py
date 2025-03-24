@@ -15,19 +15,39 @@ if not BOT_TOKEN:
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# ID вашего канала (замените на реальный chat_id канала t.me/kalkopred)
-CHANNEL_ID = "@kalkopred"  # Укажите ID канала в формате @username
+# ID канала (для публичного канала используйте @username, для приватного — числовой chat_id)
+CHANNEL_ID = "@kalkopred"  # Убедитесь, что это правильный ID
 
 # Функция проверки подписки
 def check_subscription(user_id):
     try:
+        # Проверяем статус пользователя в канале
         member = bot.get_chat_member(CHANNEL_ID, user_id)
+        logger.info(f"Статус пользователя {user_id} в канале {CHANNEL_ID}: {member.status}")
         if member.status in ["member", "administrator", "creator"]:
             return True
+        else:
+            return False
+    except telebot.apihelper.ApiTelegramException as e:
+        if "chat not found" in str(e).lower():
+            logger.error(f"Канал {CHANNEL_ID} не найден. Проверьте правильность CHANNEL_ID.")
+        elif "bot is not a member" in str(e).lower():
+            logger.error(f"Бот не является участником канала {CHANNEL_ID}. Добавьте бота как администратора.")
+        elif "not enough rights" in str(e).lower():
+            logger.error(f"У бота недостаточно прав для проверки участников в канале {CHANNEL_ID}. Дайте боту права администратора.")
+        else:
+            logger.error(f"Ошибка при проверке подписки: {e}")
         return False
     except Exception as e:
-        logger.error(f"Ошибка при проверке подписки: {e}")
+        logger.error(f"Неизвестная ошибка при проверке подписки: {e}")
         return False
+
+# Команда для получения chat_id (для отладки, если канал приватный)
+@bot.message_handler(commands=['getchatid'])
+def get_chat_id(message):
+    chat_id = message.chat.id
+    bot.reply_to(message, f"Chat ID этого чата: {chat_id}")
+    logger.info(f"Пользователь {message.from_user.id} запросил chat_id: {chat_id}")
 
 # Обработчик команды /start
 @bot.message_handler(commands=['start'])
