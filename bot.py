@@ -26,7 +26,7 @@ def send_welcome(message):
 @bot.message_handler(content_types=['text'])
 def echo(message):
     bot.reply_to(message, f"Вы сказали: {message.text}")
-    logger.info(f"Получено сообщение от {message.from_user.first_name}: {message.text}")
+    logger.info(f"Получено сообщение от {user.first_name}: {message.text}")
 
 # Запуск бота с polling
 def main():
